@@ -14,6 +14,8 @@ bitmap:
     - 96
   backfill_missing:
     source: 160
+  metrics:
+    y_bearing: full_height
 tables:
   drop:
     source_tables: true
@@ -21,3 +23,11 @@ tables:
   cmap:
     bmp: true
     ucs4: true
+  metrics:
+    fs_type: installable
+    unicode_ranges: emoji
+  head:
+    mac_style: 0
+    units_per_em: 2048
+  post:
+    format: 3

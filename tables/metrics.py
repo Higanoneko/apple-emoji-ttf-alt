@@ -17,6 +17,8 @@ def apply_metrics_policy(
     config: MetricsConfig | None,
     metrics: FontMetrics,
 ) -> None:
+    _fix_zero_win_metrics(font, metrics)
+
     if config is None:
         return
     apply_explicit_metrics(font, config)
@@ -150,6 +152,22 @@ def _apply_explicit_panose(font: TTFont, values) -> None:
     for key, attr in attrs.items():
         if key in values:
             setattr(panose, attr, values[key])
+
+
+def _fix_zero_win_metrics(font: TTFont, metrics: FontMetrics) -> None:
+    """自动修复 OS/2 usWinAscent/usWinDescent 为零导致的浏览器裁剪问题。
+
+    部分源字体（如 Apple Color Emoji）的 usWinAscent/usWinDescent 可能为零，
+    如果不修复，输出字体在浏览器中将完全不可见。"""
+    if "OS/2" not in font:
+        return
+    os2 = font["OS/2"]
+    if os2.usWinAscent == 0 and metrics.ascent > 0:
+        os2.usWinAscent = metrics.ascent
+        LOG.info("Auto-fixed OS/2 usWinAscent: 0 -> %d", os2.usWinAscent)
+    if os2.usWinDescent == 0 and metrics.descent > 0:
+        os2.usWinDescent = metrics.descent
+        LOG.info("Auto-fixed OS/2 usWinDescent: 0 -> %d", os2.usWinDescent)
 
 
 def update_os2_browser_safe(font: TTFont, metrics: FontMetrics) -> None:
